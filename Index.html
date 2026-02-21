@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой блог - Криптография: Цезарь и RSA</title>
+    <!-- Подключаем шрифт Comic Neue (как замену Pudelinka) -->
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* === Основные стили страницы === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .blog-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin: 40px 0 20px 0;
+        }
+
+        blockquote {
+            font-style: italic;
+            color: #7f8c8d;
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* === Стили для разделов шифров === */
+        .cipher-section {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .cipher-section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .task {
+            background-color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+
+        .task h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .solution {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px dashed #3498db;
+        }
+
+        .cipher-tool {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            border: none;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            word-break: break-word;
+        }
+
+        .explanation {
+            font-style: italic;
+            color: #666;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .alphabet {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .letter {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-weight: bold;
+            background-color: white;
+            transition: all 0.2s;
+        }
+
+        .letter.shifted {
+            background-color: #3498db;
+            color: white;
+            border-color: #2980b9;
+        }
+
+        /* === Стили для раздела RSA === */
+        .rsa-section {
+            margin: 40px 0;
+            padding: 25px;
+            background-color: #f0f7ff;
+            border-radius: 10px;
+            border: 1px solid #b3d4fc;
+        }
+
+        .rsa-section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Стиль для заголовка RSA с шрифтом Comic Neue */
+        .rsa-title {
+            font-family: 'Comic Neue', cursive;
+            font-weight: 700;
+            font-size: 2.5em;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 0px rgba(231, 76, 60, 0.2);
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, #3498db, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 10px;
+            border-bottom: 3px dashed #3498db;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .rsa-key {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .rsa-note {
+            background-color: #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #fdcb6e;
+            font-style: italic;
+        }
+
+        .rsa-calculation {
+            background-color: #d1ecf1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .rsa-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .rsa-btn:hover {
+            background-color: #c0392b;
+        }
+
+        #rsaResult {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #d4edda;
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .warning {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        /* === Стили для ссылок и контактов === */
+        .contact-info {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="blog-section">
+        <h1>Мой блог</h1>
+
+        <blockquote class="q">Путешествие в тысячу миль начинается с одного шага (Лао Цзы)</blockquote>
+      
+<h2>21 Февраля, 2026</h2>
+        <div class="chat-log">
+            <p><strong>Ответ модели:</strong></p>
+            <p><strong>Вопрос пользователя:</strong> Сколько ждать мой заказ?</p>
+            <p><strong>Найден FAQ-вопрос:</strong> Как быстро доставляется заказ? (sim=0.706)</p>
+            <p><strong>Ответ бот-FAQ:</strong> Наш стандартный срок доставки — 3–5 рабочих дней.</p>
+        </div> 
+      
+        <h2>19 Января, 2026</h2>
+
+        <!-- Раздел про шифр Цезаря -->
+        <div class="cipher-section">
+            <h2>Шифр Цезаря: Теория и Практика</h2>
+
+            <div class="task">
+                <h3>Задача 1: Определение ключа шифра Цезаря</h3>
+                <p>Известны пары "открытый текст – шифротекст". Нужно найти ключ k.</p>
+
+                <div class="solution">
+                    <h4>Решение:</h4>
+                    <p><strong>А. АПЕЛЬСИН – САЦЬНВЩЮ</strong></p>
+                    <p>Сравниваем первую букву: А → С</p>
+                    <p>В алфавите: А(1) → С(19)</p>
+                    <p>Смещение: 19 - 1 = <strong>18</strong></p>
+                    <p>Проверяем: П(17) + 18 = 35 → 35 - 33 = 2 → Б ❌</p>
+                    <p>Проверяем отрицательное смещение: А(1) → С(19) = 1 + 18 = 19 ✓</p>
+                    <p>Ключ: <strong>k = 18</strong></p>
+
+                    <div class="explanation">
+                        Русский алфавит (33 буквы): АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ
+                    </div>
+                </div>
+
+                <div class="solution">
+                    <h4>Решение для второго примера:</h4>
+                    <p><strong>Б. АБРИКОС – ЫЬЛГЕЙМ</strong></p>
+                    <p>А → Ы (А=1, Ы=29 в 33-буквенном алфавите)</p>
+                    <p>Смещение: 29 - 1 = 28</p>
+                    <p>Проверяем: Б(2) + 28 = 30 → Ь ✓</p>
+                    <p>Ключ: <strong>k = 28</strong> (или k = -5, так как 28 ≡ -5 mod 33)</p>
+                </div>
+            </div>
+
+            <div class="task">
+                <h3>Задача 2: Расшифровка сообщений</h3>
+                <p>Сообщения зашифрованы шифром Цезаря с неизвестным ключом k (0 &lt; k &lt; 32).</p>
+
+                <div class="solution">
+                    <h4>Решение:</h4>
+                    <p><strong>А. ФХНЗКЧ</strong></p>
+                    <p>Пробуем разные ключи (метод brute force):</p>
+                    <ul>
+                        <li>k=18: Ф→П, Х→Р, Н→И, З→В, К→Е, Ч→Т → ПРИВЕТ ✓</li>
+                    </ul>
+                    <p>Ответ: <strong>ПРИВЕТ</strong> (ключ k=18)</p>
+
+                    <p><strong>Б. ЦЩЕБФ</strong></p>
+                    <ul>
+                        <li>k=20: Весна ✓</li>
+                    </ul>
+                    <p>Ответ: <strong>ВЕСНА</strong> (ключ k=20)</p>
+                </div>
+            </div>
+
+            <!-- Интерактивный инструмент Цезаря -->
+            <div class="cipher-tool">
+                <h3>🛠 Интерактивный шифр Цезаря</h3>
+                <div class="input-group">
+                    <label for="keyInput">Ключ сдвига (0-32):</label>
+                    <input type="number" id="keyInput" value="3" min="0" max="32">
+                </div>
+                <div class="input-group">
+                    <label for="textInput">Текст:</label>
+                    <input type="text" id="textInput" value="ПРИВЕТ" placeholder="Введите текст...">
+                </div>
+                <div>
+                    <button class="btn" onclick="encrypt()">Зашифровать</button>
+                    <button class="btn" onclick="decrypt()">Расшифровать</button>
+                    <button class="btn" onclick="bruteForce()">Перебор (brute force)</button>
+                </div>
+
+                <!-- Визуализация алфавита -->
+                <h4>Визуализация алфавита (подсвечены буквы после сдвига):</h4>
+                <div id="alphabetVisualization" class="alphabet"></div>
+
+                <div id="caesarResult" class="result"></div>
+                <div id="bruteResults" class="result" style="background-color: #fff3cd;"></div>
+            </div>
+        </div>
+
+        <h2>21 Января, 2026</h2>
+
+        <!-- Раздел RSA -->
+        <div class="rsa-section">
+            <h1 class="rsa-title">🔐 Учебный пример шифрования RSA</h1>
+
+            <h2>1. Генерация ключей</h2>
+            <p>Выбираем простые числа:</p>
+            <ul>
+                <li><code>p = 3</code></li>
+                <li><code>q = 5</code></li>
+            </ul>
+            <p>Вычисляем:</p>
+            <ul>
+                <li><code>n = p × q = 15</code></li>
+                <li><code>φ(n) = (p−1)(q−1) = 2 × 4 = 8</code></li>
+            </ul>
+            <p>Выбираем <code>e = 3</code> (взаимно простое с 8).</p>
+            <p>Находим <code>d</code>, такое что <code>(e × d) mod φ(n) = 1</code> → <code>d = 3</code>.</p>
+
+            <div class="rsa-key">
+                <strong>Открытый ключ:</strong> <code>(n, e) = (15, 3)</code><br>
+                <strong>Закрытый ключ:</strong> <code>(n, d) = (15, 3)</code>
+            </div>
+
+            <div class="rsa-note">
+                ⚠️ В этом примере <code>e = d</code> — это допустимо для обучения, но <strong>небезопасно</strong> в реальных системах!
+            </div>
+
+            <h2>2. Шифрование</h2>
+            <p>Сообщение: <code>m = 2</code> (например, «анализ готов»)</p>
+            <p>Условия: <code>0 &lt; m &lt; n</code> и <code>НОД(m, n) = 1</code> → выполнены.</p>
+            <div class="rsa-calculation">
+                <p>Шифруем: <code>C = m<sup>e</sup> mod n = 2<sup>3</sup> mod 15 = 8</code></p>
+                <p>→ <strong>Шифротекст: C = 8</strong></p>
+            </div>
+
+            <h2>3. Расшифровка</h2>
+            <div class="rsa-calculation">
+                <p>Расшифровываем: <code>M = C<sup>d</sup> mod n = 8<sup>3</sup> mod 15 = 512 mod 15 = 2</code></p>
+                <p>→ <strong class="success">Исходное сообщение восстановлено! ✅</strong></p>
+            </div>
+
+            <button class="rsa-btn" onclick="rsaDecrypt()">Проверить расшифровку (8³ mod 15)</button>
+            <div id="rsaResult"></div>
+
+            <h2>💡 А в реальности?</h2>
+            <div class="rsa-note">
+                <p>Число <code>n</code> состоит из <strong>600+ десятичных цифр</strong> (2048+ бит).<br>
+                Такие маленькие числа (<code>p=3, q=5</code>) используются <strong>только для обучения</strong>.</p>
+            </div>
+
+            <!-- Интерактивная демонстрация RSA -->
+            <div class="cipher-tool">
+                <h3>🎮 Интерактивная демонстрация RSA</h3>
+
+                <div class="input-group">
+                    <label for="rsaMessage">Сообщение m (число от 1 до 14):</label>
+                    <input type="number" id="rsaMessage" value="2" min="1" max="14">
+                </div>
+
+                <div class="input-group">
+                    <label>Параметры:</label>
+                    <p><code>p = 3, q = 5, n = 15, e = 3, d = 3</code></p>
+                </div>
+
+                <div class="input-group">
+                    <label>Действие:</label>
+                    <button class="btn" onclick="rsaEncryptDemo()">Зашифровать</button>
+                    <button class="btn" onclick="rsaDecryptDemo()">Расшифровать</button>
+                </div>
+
+                <div id="rsaDemoResult" class="result"></div>
+            </div>
+        </div>
+
+        <h2>1 сентября, 2025</h2>
+        <blockquote>Путешествие в тысячу миль начинается с одного шага (Лао Цзы)</blockquote>
+        <p>Оставляю в прошлом скучную неинтересную локальную файловую систему ради Всемирной паутины.</p>
+
+        <p>Нажмите, чтобы скачать или открыть презентацию:
+        <a href="#" download>Презентация в формате .pptx</a> (ссылка-заглушка)</p>
+
+        <p>Нажмите, чтобы скачать или открыть index.html:
+        <a href="#" download>Файл проверки работы с кириллицей .html</a> (ссылка-заглушка)</p>
+    </div>
+
+    <script>
+        // === Глобальные функции и данные для работы страницы ===
+        (function() {
+            // Русский алфавит (33 буквы)
+            const russianAlphabet = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
+            const alphabetLength = russianAlphabet.length;
+
+            // Функция для получения индекса буквы в алфавите (0-32)
+            window.getLetterIndex = function(letter) {
+                return russianAlphabet.indexOf(letter.toUpperCase());
+            };
+
+            // Функция инициализации визуализации алфавита
+            window.initAlphabetVisualization = function() {
+                const container = document.getElementById('alphabetVisualization');
+                if (!container) return;
+                container.innerHTML = '';
+
+                for (let i = 0; i < russianAlphabet.length; i++) {
+                    const letterDiv = document.createElement('div');
+                    letterDiv.className = 'letter';
+                    letterDiv.textContent = russianAlphabet[i];
+                    letterDiv.dataset.index = i;
+                    letterDiv.title = `Позиция: ${i + 1}`;
+                    container.appendChild(letterDiv);
+                }
+                updateAlphabetVisualization();
+            };
+
+            // Обновление визуализации алфавита со смещением
+            window.updateAlphabetVisualization = function() {
+                const keyInput = document.getElementById('keyInput');
+                if (!keyInput) return;
+                const key = parseInt(keyInput.value) || 0;
+                const letters = document.querySelectorAll('#alphabetVisualization .letter');
+
+                letters.forEach((letter, index) => {
+                    letter.classList.remove('shifted');
+                    let newIndex = (index + key) % alphabetLength;
+                    if (newIndex < 0) newIndex += alphabetLength;
+                    // Подсвечиваем, если позиция изменилась (для наглядности)
+                    if (key !== 0 && (index + key) % alphabetLength !== index) {
+                        letter.classList.add('shifted');
+                        letter.title = `Позиция: ${index + 1} → ${russianAlphabet[newIndex]} (поз. ${newIndex + 1})`;
+                    } else {
+                        letter.title = `Позиция: ${index + 1}`;
+                    }
+                });
+            };
+
+            // Функция шифрования/расшифровки
+            window.caesarCipher = function(text, key, encrypt = true) {
+                let result = "";
+                for (let i = 0; i < text.length; i++) {
+                    let char = text[i];
+                    let index = getLetterIndex(char);
+
+                    if (index === -1) {
+                        result += char; // оставляем как есть (пробелы, знаки)
+                        continue;
+                    }
+
+                    let newIndex;
+                    if (encrypt) {
+                        newIndex = (index + key) % alphabetLength;
+                    } else {
+                        newIndex = (index - key) % alphabetLength;
+                    }
+                    if (newIndex < 0) newIndex += alphabetLength;
+
+                    // Сохраняем регистр
+                    let newChar = russianAlphabet[newIndex];
+                    result += (char === char.toUpperCase()) ? newChar : newChar.toLowerCase();
+                }
+                return result;
+            };
+
+            // Зашифровать
+            window.encrypt = function() {
+                const text = document.getElementById('textInput').value;
+                const key = parseInt(document.getElementById('keyInput').value) || 0;
+
+                if (!text) {
+                    document.getElementById('caesarResult').innerHTML = "<span class='warning'>Введите текст для шифрования</span>";
+                    return;
+                }
+
+                const encrypted = caesarCipher(text, key, true);
+                document.getElementById('caesarResult').innerHTML = 
+                    `<strong>Зашифрованный текст:</strong> ${encrypted}`;
+                updateAlphabetVisualization();
+            };
+
+            // Расшифровать
+            window.decrypt = function() {
+                const text = document.getElementById('textInput').value;
+                const key = parseInt(document.getElementById('keyInput').value) || 0;
+
+                if (!text) {
+                    document.getElementById('caesarResult').innerHTML = "<span class='warning'>Введите текст для расшифрования</span>";
+                    return;
+                }
+
+                const decrypted = caesarCipher(text, key, false);
+                document.getElementById('caesarResult').innerHTML = 
+                    `<strong>Расшифрованный текст:</strong> ${decrypted}`;
+                updateAlphabetVisualization();
+            };
+
+            // Brute force - перебор всех ключей
+            window.bruteForce = function() {
+                const text = document.getElementById('textInput').value;
+
+                if (!text) {
+                    document.getElementById('caesarResult').innerHTML = "<span class='warning'>Введите текст для анализа</span>";
+                    return;
+                }
+
+                let results = "<h4>Результаты перебора всех ключей:</h4>";
+                results += "<div style='max-height: 300px; overflow-y: auto; padding: 10px; background-color: white; border-radius: 5px;'>";
+
+                for (let k = 1; k < alphabetLength; k++) {
+                    const decrypted = caesarCipher(text, k, false);
+                    results += `<p><strong>Ключ ${k}:</strong> ${decrypted}</p>`;
+                }
+
+                results += "</div>";
+                document.getElementById('bruteResults').innerHTML = results;
+                document.getElementById('caesarResult').innerHTML = 
+                    `<strong>Исходный текст:</strong> ${text}`;
+
+                updateAlphabetVisualization();
+            };
+
+            // === RSA функции ===
+            window.rsaDecrypt = function() {
+                const C = 8;
+                const d = 3;
+                const n = 15;
+                const M = Math.pow(C, d) % n;
+
+                const resultDiv = document.getElementById('rsaResult');
+                resultDiv.innerHTML = `
+                    <h4>Проверка расшифровки:</h4>
+                    <p><code>M = C<sup>d</sup> mod n = ${C}<sup>${d}</sup> mod ${n}</code></p>
+                    <p><code>${C}<sup>${d}</sup> = ${Math.pow(C, d)}</code></p>
+                    <p><code>${Math.pow(C, d)} mod ${n} = ${M}</code></p>
+                    <p class="success">✅ Результат: M = ${M} (сообщение восстановлено!)</p>
+                `;
+                resultDiv.style.display = 'block';
+            };
+
+            window.rsaEncryptDemo = function() {
+                const input = document.getElementById('rsaMessage');
+                const m = parseInt(input.value) || 2;
+                const e = 3;
+                const n = 15;
+
+                if (m <= 0 || m >= n) {
+                    document.getElementById('rsaDemoResult').innerHTML = 
+                        `<span class="warning">Сообщение m должно быть в диапазоне: 1 ≤ m ≤ ${n-1}</span>`;
+                    return;
+                }
+
+                // Проверяем НОД(m, n) = 1
+                let a = m, b = n;
+                while (b !== 0) { let t = b; b = a % b; a = t; }
+                if (a !== 1) {
+                    document.getElementById('rsaDemoResult').innerHTML = 
+                        `<span class="warning">НОД(${m}, ${n}) = ${a} ≠ 1. Выберите другое сообщение.</span>`;
+                    return;
+                }
+
+                const C = Math.pow(m, e) % n;
+                document.getElementById('rsaDemoResult').innerHTML = `
+                    <h4>Шифрование:</h4>
+                    <p><strong>Исходное сообщение:</strong> m = ${m}</p>
+                    <p><strong>Открытый ключ:</strong> (n, e) = (${n}, ${e})</p>
+                    <p><code>C = m<sup>e</sup> mod n = ${m}<sup>${e}</sup> mod ${n}</code></p>
+                    <p><code>${m}<sup>${e}</sup> = ${Math.pow(m, e)}</code></p>
+                    <p><code>${Math.pow(m, e)} mod ${n} = ${C}</code></p>
+                    <p class="success"><strong>Шифротекст:</strong> C = ${C}</p>
+                `;
+            };
+
+            window.rsaDecryptDemo = function() {
+                const input = document.getElementById('rsaMessage');
+                const C = parseInt(input.value) || 8;
+                const d = 3;
+                const n = 15;
+
+                if (C <= 0 || C >= n) {
+                    document.getElementById('rsaDemoResult').innerHTML = 
+                        `<span class="warning">Шифротекст C должен быть в диапазоне: 1 ≤ C ≤ ${n-1}</span>`;
+                    return;
+                }
+
+                const M = Math.pow(C, d) % n;
+                document.getElementById('rsaDemoResult').innerHTML = `
+                    <h4>Расшифровка:</h4>
+                    <p><strong>Шифротекст:</strong> C = ${C}</p>
+                    <p><strong>Закрытый ключ:</strong> (n, d) = (${n}, ${d})</p>
+                    <p><code>M = C<sup>d</sup> mod n = ${C}<sup>${d}</sup> mod ${n}</code></p>
+                    <p><code>${C}<sup>${d}</sup> = ${Math.pow(C, d)}</code></p>
+                    <p><code>${Math.pow(C, d)} mod ${n} = ${M}</code></p>
+                    <p class="success"><strong>Расшифрованное сообщение:</strong> m = ${M}</p>
+                `;
+            };
+
+            // Установка обработчика на изменение ключа
+            window.setupListeners = function() {
+                const keyInput = document.getElementById('keyInput');
+                if (keyInput) {
+                    keyInput.addEventListener('input', updateAlphabetVisualization);
+                }
+            };
+
+            // Запуск при загрузке
+            window.onload = function() {
+                initAlphabetVisualization();
+                setupListeners();
+
+                // Примеры приветствия
+                const caesarRes = document.getElementById('caesarResult');
+                if (caesarRes) {
+                    caesarRes.innerHTML = `<strong>Пример:</strong> Введите "Дергачев" и нажмите "Зашифровать" с ключом 10`;
+                }
+                const rsaDemo = document.getElementById('rsaDemoResult');
+                if (rsaDemo) {
+                    rsaDemo.innerHTML = `<strong>Пример RSA:</strong> Введите число от 1 до 14 и нажмите "Зашифровать" или "Расшифровать"`;
+                }
+            };
+        })();
+    </script>
+</body>
+</html>
